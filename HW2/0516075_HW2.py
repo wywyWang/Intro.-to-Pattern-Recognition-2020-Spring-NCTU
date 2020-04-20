@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 CLASS = 2
+K = 7
 
 
 def read_csv():
@@ -9,10 +10,6 @@ def read_csv():
     y_train = pd.read_csv("y_train.csv").values[:, 0]
     x_test = pd.read_csv("x_test.csv").values
     y_test = pd.read_csv("y_test.csv").values[:, 0]
-    # print(x_train.shape)
-    # print(y_train.shape)
-    # print(x_test.shape)
-    # print(y_test.shape)
     return x_train, y_train, x_test, y_test
 
 
@@ -42,12 +39,37 @@ def compute_betweenclass(class_mean):
     return between_class
 
 
-def compute_eigen():
-    print()
+def compute_eigen(A):
+    eigenvalues, eigenvectors = np.linalg.eigh(A)
+    idx = eigenvalues.argsort()[::-1]                          # sort largest
+    weight = eigenvectors[:,idx][:,:1]
+    print("Fisher’s linear discriminant: {}".format(weight))
+    return weight
 
 
-def compute_accuracy():
-    print()
+def k_nearest_neighbor(x_train, y_train, x_test):
+    y_pred = []
+    train_size = x_train.shape[0]
+    test_size = x_test.shape[0]
+    for test_idx in range(test_size):
+        all_dist = np.zeros(train_size)
+        for train_idx in range(train_size):
+            dist = np.sqrt(np.sum((x_test[test_idx] - x_train[train_idx]) ** 2))
+            all_dist[train_idx] = dist
+        sort_idx = all_dist.argsort()
+        neighbor = list(y_train[sort_idx][:K])
+        prediction = max(set(neighbor), key=neighbor.count)
+        y_pred.append(prediction)
+    return y_pred
+
+
+def compute_accuracy(y_pred, y_test):
+    correct = 0
+    for i in range(len(y_pred)):
+        # print("Prediction: {}, Answer: {}".format(y_pred[i], y_test[i]))
+        if y_pred[i] == y_test[i]:
+            correct += 1
+    print("Accuracy of test-set {}".format(correct / len(y_pred)))
 
 
 if __name__ == "__main__":
@@ -55,5 +77,8 @@ if __name__ == "__main__":
     class_mean = compute_mean(x_train, y_train)
     within_class = compute_withinclass(x_train, y_train, class_mean)
     between_class = compute_betweenclass(class_mean)
-    compute_eigen()
-    compute_accuracy()
+    weight = compute_eigen(np.matmul(np.linalg.pinv(within_class), between_class))
+    lower_dimension_train = np.matmul(x_train, weight)
+    lower_dimension_test = np.matmul(x_test, weight)
+    y_pred = k_nearest_neighbor(lower_dimension_train, y_train, lower_dimension_test)
+    compute_accuracy(y_pred, y_test)
