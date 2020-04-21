@@ -77,6 +77,37 @@ def compute_accuracy(y_pred, y_test):
     print("Accuracy of test-set {}".format(correct / len(y_pred)))
 
 
+def plot_result(x_train, y_train, weight, class_mean):
+    fig = plt.figure()
+    plt.title("Visualization with K = {}".format(K))
+    plt.xlim(-2, 5)
+    plt.ylim(-2, 5)
+    # Plot project line
+    project_x = np.linspace(-5, 5, 30)
+    project_slope = weight[1] / weight[0]
+    # Through origin, hence b = 0
+    project_func = np.poly1d([project_slope, 0])
+    project_y = project_func(project_x)
+    plt.plot(project_x, project_y, c='red')
+    # Plot decision boundary
+    middle_mean = np.mean(class_mean, axis=0)
+    # Since orthogonal to project line
+    decision_slope = (-1) / project_slope
+    decision_intercept = middle_mean[1] - decision_slope * middle_mean[0]
+    decision_func = np.poly1d([decision_slope[0], decision_intercept[0]])
+    decision_x = np.linspace(-5, 5, 30)
+    decision_y = decision_func(decision_x)
+    plt.plot(decision_x, decision_y, c='g')
+    # Plot training data
+    colors = ['yellow', 'magenta']
+    for class_idx in range(CLASS):
+        match_idx = np.where(y_train == class_idx)
+        match_data = x_train[match_idx]
+        plt.scatter(match_data[:, 0], match_data[:, 1], c=colors[class_idx])
+        plt.scatter(class_mean[class_idx, 0], class_mean[class_idx, 1], c='b')
+    plt.savefig('visualization.png')
+
+
 if __name__ == "__main__":
     x_train, y_train, x_test, y_test = read_csv()
     class_mean = compute_mean(x_train, y_train)
@@ -88,3 +119,4 @@ if __name__ == "__main__":
     lower_dimension_test = np.matmul(x_test, weight)
     y_pred = knn(lower_dimension_train, y_train, lower_dimension_test)
     compute_accuracy(y_pred, y_test)
+    plot_result(x_train, y_train, weight, class_mean)
