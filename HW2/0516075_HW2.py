@@ -79,32 +79,42 @@ def compute_accuracy(y_pred, y_test):
 
 def plot_result(x_train, y_train, weight, class_mean):
     fig = plt.figure()
-    plt.title("Visualization with K = {}".format(K))
     plt.xlim(-2, 5)
     plt.ylim(-2, 5)
     # Plot project line
     project_x = np.linspace(-5, 5, 30)
     project_slope = weight[1] / weight[0]
     # Through origin, hence b = 0
-    project_func = np.poly1d([project_slope, 0])
+    project_intercept = 0
+    project_func = np.poly1d([project_slope, project_intercept])
     project_y = project_func(project_x)
     plt.plot(project_x, project_y, c='red')
+    plt.title("Projection line: w = {}, b = {}" \
+            .format(project_slope[0], project_intercept))
     # Plot decision boundary
-    middle_mean = np.mean(class_mean, axis=0)
+    # middle_mean = np.mean(class_mean, axis=0)
     # Since orthogonal to project line
     decision_slope = (-1) / project_slope
-    decision_intercept = middle_mean[1] - decision_slope * middle_mean[0]
-    decision_func = np.poly1d([decision_slope[0], decision_intercept[0]])
-    decision_x = np.linspace(-5, 5, 30)
-    decision_y = decision_func(decision_x)
-    plt.plot(decision_x, decision_y, c='g')
+    # decision_intercept = middle_mean[1] - decision_slope * middle_mean[0]
+    # decision_func = np.poly1d([decision_slope[0], decision_intercept[0]])
+    # decision_x = np.linspace(-5, 5, 30)
+    # decision_y = decision_func(decision_x)
+    # plt.plot(decision_x, decision_y, c='g')
     # Plot training data
     colors = ['yellow', 'magenta']
     for class_idx in range(CLASS):
         match_idx = np.where(y_train == class_idx)
         match_data = x_train[match_idx]
         plt.scatter(match_data[:, 0], match_data[:, 1], c=colors[class_idx])
-        plt.scatter(class_mean[class_idx, 0], class_mean[class_idx, 1], c='b')
+        # Plot project line of each point
+        for idx, data in enumerate(match_data):
+            decision_intercept = data[1] - decision_slope * data[0]
+            a = np.array([[project_slope[0], -1], \
+                        [decision_slope[0], -1]])
+            b = np.array([-project_intercept, -decision_intercept[0]])
+            lower_data = np.linalg.solve(a, b)
+            plt.scatter(lower_data[0], lower_data[1], c=colors[class_idx])
+            plt.plot([data[0], lower_data[0]], [data[1], lower_data[1]], c='b', alpha=0.3)
     plt.savefig('visualization.png')
 
 
