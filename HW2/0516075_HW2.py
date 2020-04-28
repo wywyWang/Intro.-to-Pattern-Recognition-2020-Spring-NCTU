@@ -89,8 +89,8 @@ def plot_result(x_train, y_train, weight, class_mean):
     project_func = np.poly1d([project_slope, project_intercept])
     project_y = project_func(project_x)
     plt.plot(project_x, project_y, c='red')
-    plt.title("Projection line: w = {}, b = {}" \
-            .format(project_slope[0], project_intercept))
+    plt.title("Projection line: w = {}, b = {}"
+              .format(project_slope[0], project_intercept))
     # Plot decision boundary
     # middle_mean = np.mean(class_mean, axis=0)
     # Since orthogonal to project line
@@ -109,12 +109,13 @@ def plot_result(x_train, y_train, weight, class_mean):
         # Plot project line of each point
         for idx, data in enumerate(match_data):
             decision_intercept = data[1] - decision_slope * data[0]
-            a = np.array([[project_slope[0], -1], \
-                        [decision_slope[0], -1]])
+            a = np.array([[project_slope[0], -1],
+                         [decision_slope[0], -1]])
             b = np.array([-project_intercept, -decision_intercept[0]])
             lower_data = np.linalg.solve(a, b)
             plt.scatter(lower_data[0], lower_data[1], c=colors[class_idx])
-            plt.plot([data[0], lower_data[0]], [data[1], lower_data[1]], c='b', alpha=0.3)
+            plt.plot([data[0], lower_data[0]], [data[1], lower_data[1]],
+                     c='b', alpha=0.3)
     plt.savefig('visualization.png')
 
 
